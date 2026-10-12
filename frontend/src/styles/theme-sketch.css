@@ -1,0 +1,58 @@
+/* Sketch Theme (Default) */
+[data-theme="sketch"], :root {
+  --color-bg: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F8F8F8;
+  --color-surface-subtle: #F3F3F3;
+  --color-card-bg: #FFFFFF;
+  --color-card-border: #000000;
+  
+  --color-text: #000000;
+  --color-text-muted: #555555;
+  --color-text-subtle: #777777;
+  --color-text-on-action: #FFFFFF;
+  
+  --color-action: #000000;
+  --color-action-hover: #222222;
+  --color-action-active: #000000;
+  
+  --color-border: #000000;
+  --color-border-subtle: #CCCCCC;
+  --color-border-dashed: #000000;
+  
+  --focus-ring: #000000;
+  --card-shadow: 2px 2px 0px #000000;
+  --card-border-width: 1.5px;
+  --border-style: solid;
+  
+  --font-family: 'Architects Daughter', cursive, sans-serif;
+  --font-body: 'Architects Daughter', cursive, sans-serif;
+  --font-heading: 'Architects Daughter', cursive, sans-serif;
+
+  /* Stripe style: Repeating black, dark grey, light grey, white 10px blocks */
+  --stripe-bg: repeating-linear-gradient(
+    90deg,
+    #000000 0px,
+    #000000 24px,
+    #666666 24px,
+    #666666 48px,
+    #CCCCCC 48px,
+    #CCCCCC 72px,
+    #FFFFFF 72px,
+    #FFFFFF 96px
+  );
+  --stripe-height: 10px;
+
+  /* Badge / chip accents */
+  --badge-bg: #000000;
+  --badge-text: #FFFFFF;
+  --badge-outline-border: #000000;
+
+  /* Priority tag colors (AA contrast preserved) */
+  --priority-high: #000000;
+  --priority-high-bg: #F0F0F0;
+  --priority-med: #444444;
+  --priority-med-bg: #F5F5F5;
+  --priority-low: #666666;
+  --priority-low-bg: #FAFAFA;
+}

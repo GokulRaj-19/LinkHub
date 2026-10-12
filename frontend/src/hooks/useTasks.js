@@ -1,0 +1,69 @@
+import { useState, useEffect, useCallback } from 'react';
+import { tasksApi } from '../api/tasksApi';
+import { useAuth } from '../context/AuthContext';
+
+export function useTasks(teamId = null) {
+  const { user } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const fetchTasks = useCallback(async () => {
+    if (!teamId) return;
+    setLoading(true);
+    setError('');
+    try {
+      const data = await tasksApi.getTasks(teamId);
+      setTasks(data);
+    } catch (err) {
+      setError(err.message || 'Failed to load tasks.');
+    } finally {
+      setLoading(false);
+    }
+  }, [teamId]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
+
+  const addTask = async (payload) => {
+    const created = await tasksApi.createTask({
+      ...payload,
+      team_id: teamId,
+      created_by: user.id,
+    });
+    await fetchTasks();
+    return created;
+  };
+
+  const updateStatus = async (taskId, newStatus) => {
+    await tasksApi.updateTaskStatus(taskId, newStatus, user.id);
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+    );
+  };
+
+  const removeTask = async (taskId) => {
+    await tasksApi.deleteTask(taskId, user.id);
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  };
+
+  const filteredTasks = tasks.filter((t) => {
+    if (statusFilter === 'all') return true;
+    return t.status === statusFilter;
+  });
+
+  return {
+    tasks: filteredTasks,
+    allTasks: tasks,
+    loading,
+    error,
+    statusFilter,
+    setStatusFilter,
+    fetchTasks,
+    addTask,
+    updateStatus,
+    removeTask,
+  };
+}

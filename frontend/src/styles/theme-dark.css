@@ -1,0 +1,46 @@
+/* Dark Theme */
+[data-theme="dark"] {
+  --color-bg: #0E1130;
+  --color-surface: #181C42;
+  --color-surface-hover: #212656;
+  --color-surface-subtle: #141738;
+  --color-card-bg: #181C42;
+  --color-card-border: #4A52A0;
+  
+  --color-text: #ECEEFF;
+  --color-text-muted: #9EABDF;
+  --color-text-subtle: #7986BE;
+  --color-text-on-action: #FFFFFF;
+  
+  --color-action: #8B6CF0;
+  --color-action-hover: #A085F8;
+  --color-action-active: #7A57E8;
+  
+  --color-border: #4A52A0;
+  --color-border-subtle: #2C326E;
+  --color-border-dashed: #8B6CF0;
+  
+  --focus-ring: #8B6CF0;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --card-border-width: 1px;
+  --border-style: solid;
+  
+  --font-family: 'Figtree', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, sans-serif;
+  --font-heading: 'Sora', system-ui, sans-serif;
+
+  /* Gradient stripe */
+  --stripe-bg: linear-gradient(90deg, #8B6CF0 0%, #3B82F6 50%, #06B6D4 100%);
+  --stripe-height: 8px;
+
+  --badge-bg: #8B6CF0;
+  --badge-text: #FFFFFF;
+  --badge-outline-border: #8B6CF0;
+
+  --priority-high: #FF6B6B;
+  --priority-high-bg: rgba(255, 107, 107, 0.15);
+  --priority-med: #FFB347;
+  --priority-med-bg: rgba(255, 179, 71, 0.15);
+  --priority-low: #69DB7C;
+  --priority-low-bg: rgba(105, 219, 124, 0.15);
+}

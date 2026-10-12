@@ -1,0 +1,52 @@
+/* High Contrast Theme */
+[data-theme="hc"] {
+  --color-bg: #000000;
+  --color-surface: #000000;
+  --color-surface-hover: #1A1A1A;
+  --color-surface-subtle: #111111;
+  --color-card-bg: #000000;
+  --color-card-border: #FFFFFF;
+  
+  --color-text: #FFFFFF;
+  --color-text-muted: #E0E0E0;
+  --color-text-subtle: #CCCCCC;
+  --color-text-on-action: #000000;
+  
+  --color-action: #FFE600;
+  --color-action-hover: #FFF033;
+  --color-action-active: #E6CE00;
+  
+  --color-border: #FFFFFF;
+  --color-border-subtle: #FFFFFF;
+  --color-border-dashed: #FFE600;
+  
+  --focus-ring: #FFE600;
+  --card-shadow: none;
+  --card-border-width: 2px;
+  --border-style: solid;
+  
+  --font-family: 'Figtree', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, sans-serif;
+  --font-heading: 'Sora', system-ui, sans-serif;
+
+  /* Yellow and black hazard stripe */
+  --stripe-bg: repeating-linear-gradient(
+    -45deg,
+    #FFE600 0px,
+    #FFE600 15px,
+    #000000 15px,
+    #000000 30px
+  );
+  --stripe-height: 12px;
+
+  --badge-bg: #FFE600;
+  --badge-text: #000000;
+  --badge-outline-border: #FFE600;
+
+  --priority-high: #FFE600;
+  --priority-high-bg: #000000;
+  --priority-med: #FFFFFF;
+  --priority-med-bg: #222222;
+  --priority-low: #CCCCCC;
+  --priority-low-bg: #111111;
+}

@@ -1,0 +1,175 @@
+/* LinkHub Master CSS */
+@import './base.css';
+@import './theme-sketch.css';
+@import './theme-light.css';
+@import './theme-dark.css';
+@import './theme-contrast.css';
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  padding: 10px 20px;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 0.93rem;
+  border: var(--card-border-width) solid transparent;
+  user-select: none;
+}
+
+.btn-primary {
+  background-color: var(--color-action);
+  color: var(--color-text-on-action);
+  border-color: var(--color-action);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-action-hover);
+  border-color: var(--color-action-hover);
+  box-shadow: var(--card-shadow);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-text);
+  border: var(--card-border-width) solid var(--color-border);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.btn-dashed {
+  background-color: transparent;
+  color: var(--color-text);
+  border: var(--card-border-width) dashed var(--color-border-dashed);
+}
+
+.btn-dashed:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.btn-icon {
+  padding: 8px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+}
+
+.btn-icon:hover {
+  background-color: var(--color-surface-hover);
+}
+
+/* Card Container */
+.card {
+  background-color: var(--color-card-bg);
+  border: var(--card-border-width) var(--border-style) var(--color-card-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  box-shadow: var(--card-shadow);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* Form Controls */
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  border: var(--card-border-width) solid var(--color-border);
+  color: var(--color-text);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-action);
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--color-text);
+}
+
+/* Badges and Chips */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.badge-dashed {
+  border-style: dashed;
+}
+
+/* Modal Backdrops */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background-color: var(--color-surface);
+  border: var(--card-border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 520px;
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Loading & Empty States */
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  border: 1.5px dashed var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  margin: 16px 0;
+  color: var(--color-text-muted);
+}
+
+/* App Logo */
+.app-logo {
+  object-fit: contain;
+  transition: filter var(--transition-fast);
+}
+
+[data-theme="dark"] .app-logo {
+  filter: invert(1) brightness(1.2);
+}
+

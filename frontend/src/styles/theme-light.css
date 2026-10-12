@@ -1,0 +1,46 @@
+/* Brand Light Theme */
+[data-theme="brand"] {
+  --color-bg: #F3F5FC;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F8F9FE;
+  --color-surface-subtle: #EEF1FA;
+  --color-card-bg: #FFFFFF;
+  --color-card-border: #E2E6F5;
+  
+  --color-text: #14183A;
+  --color-text-muted: #545B82;
+  --color-text-subtle: #7A81A8;
+  --color-text-on-action: #FFFFFF;
+  
+  --color-action: #7048E0;
+  --color-action-hover: #5A35C8;
+  --color-action-active: #4B27B5;
+  
+  --color-border: #D8DEF2;
+  --color-border-subtle: #E8ECF8;
+  --color-border-dashed: #7048E0;
+  
+  --focus-ring: #7048E0;
+  --card-shadow: 0 2px 8px rgba(20, 24, 58, 0.05);
+  --card-border-width: 1px;
+  --border-style: solid;
+  
+  --font-family: 'Figtree', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, sans-serif;
+  --font-heading: 'Sora', system-ui, sans-serif;
+
+  /* Violet to blue to cyan gradient stripe */
+  --stripe-bg: linear-gradient(90deg, #7048E0 0%, #0070B8 50%, #28A8E0 100%);
+  --stripe-height: 8px;
+
+  --badge-bg: #7048E0;
+  --badge-text: #FFFFFF;
+  --badge-outline-border: #7048E0;
+
+  --priority-high: #D32F2F;
+  --priority-high-bg: #FFEBEE;
+  --priority-med: #E65100;
+  --priority-med-bg: #FFF3E0;
+  --priority-low: #2E7D32;
+  --priority-low-bg: #E8F5E9;
+}
