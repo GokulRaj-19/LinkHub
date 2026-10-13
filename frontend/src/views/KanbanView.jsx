@@ -13,17 +13,16 @@ export default function KanbanView() {
   const { teams, loading: teamsLoading } = useTeams();
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
   useEffect(() => {
-    if (teams.length > 0 && !selectedTeamId) {
-      setSelectedTeamId(teams[0].id);
-    }
+    if (teams.length > 0 && !selectedTeamId) setSelectedTeamId(teams[0].id);
   }, [teams, selectedTeamId]);
 
   const {
     tasks, allTasks, loading: tasksLoading, error,
-    statusFilter, setStatusFilter, addTask, updateStatus, updateProgress, removeTask,
+    statusFilter, setStatusFilter, addTask, editTask, updateStatus, updateProgress, removeTask,
   } = useTasks(selectedTeamId);
 
   const currentTeam = teams.find((t) => t.id === Number(selectedTeamId));
@@ -41,10 +40,11 @@ export default function KanbanView() {
   const teamMembers = currentTeam
     ? JSON.parse(localStorage.getItem('linkhub_team_memberships') || '[]')
         .filter((m) => m.team_id === currentTeam.id)
-        .map((m) => {
-          const u = JSON.parse(localStorage.getItem('linkhub_users') || '[]').find((x) => x.id === m.user_id);
-          return { user_id: m.user_id, name: u?.full_name || 'Member', role: m.role };
-        })
+        .map((m) => ({
+          user_id: m.user_id,
+          name: JSON.parse(localStorage.getItem('linkhub_users') || '[]').find((x) => x.id === m.user_id)?.full_name || 'Member',
+          role: m.role,
+        }))
     : [];
 
   const handleConfirmDelete = async () => {
@@ -140,19 +140,22 @@ export default function KanbanView() {
               currentUserId={user?.id}
               onUpdateStatus={updateStatus}
               onUpdateProgress={updateProgress}
+              onEdit={(t) => setTaskToEdit(t)}
               onDelete={(t) => setTaskToDelete(t)}
             />
           ))}
         </div>
       )}
 
-      {/* Assign Task Modal */}
+      {/* Assign / Edit Task Modal */}
       {currentTeam && (
         <TaskModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={addTask}
+          isOpen={isModalOpen || Boolean(taskToEdit)}
+          onClose={() => { setIsModalOpen(false); setTaskToEdit(null); }}
+          onSubmit={taskToEdit ? (data) => editTask(taskToEdit.id, data) : addTask}
           members={teamMembers}
+          initialTask={taskToEdit}
+          isLeader={isLeader}
         />
       )}
 
@@ -174,14 +177,8 @@ export default function KanbanView() {
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
-            <Button variant="outline" onClick={() => setTaskToDelete(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleConfirmDelete}
-              style={{ backgroundColor: '#D32F2F', borderColor: '#D32F2F', color: '#FFFFFF' }}
-            >
+            <Button variant="outline" onClick={() => setTaskToDelete(null)}>Cancel</Button>
+            <Button variant="primary" onClick={handleConfirmDelete} style={{ backgroundColor: '#D32F2F', borderColor: '#D32F2F', color: '#FFFFFF' }}>
               Confirm Delete
             </Button>
           </div>

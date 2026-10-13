@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, User, CheckCircle2, Clock, Trash2, Percent } from 'lucide-react';
+import { Calendar, User, CheckCircle2, Clock, Trash2, Percent, Edit2 } from 'lucide-react';
 import ProgressModal from './ProgressModal';
 
 export default function TaskCard({
@@ -8,6 +8,7 @@ export default function TaskCard({
   currentUserId,
   onUpdateStatus,
   onUpdateProgress,
+  onEdit,
   onDelete,
 }) {
   const [isProgressOpen, setIsProgressOpen] = useState(false);
@@ -40,6 +41,18 @@ export default function TaskCard({
             <span className="badge" style={{ ...getPriorityStyle(task.priority), textTransform: 'capitalize', fontSize: '0.75rem' }}>
               {task.priority}
             </span>
+            {canUpdate && onEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(task)}
+                aria-label={`Edit task ${task.title}`}
+                className="btn-icon"
+                style={{ padding: '3px', color: 'var(--color-text-muted)' }}
+                title="Edit Task"
+              >
+                <Edit2 size={13} />
+              </button>
+            )}
             {isLeader && onDelete && (
               <button
                 type="button"
@@ -47,6 +60,7 @@ export default function TaskCard({
                 aria-label={`Delete task ${task.title}`}
                 className="btn-icon"
                 style={{ padding: '3px', color: '#D32F2F' }}
+                title="Delete Task"
               >
                 <Trash2 size={13} />
               </button>
@@ -110,6 +124,19 @@ export default function TaskCard({
 
         {canUpdate && (
           <div style={{ display: 'flex', gap: '6px' }}>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(task)}
+                className="btn btn-sm btn-outline"
+                style={{ padding: '4px 8px', fontSize: '0.78rem', gap: '4px' }}
+                title="Edit Task Details"
+              >
+                <Edit2 size={12} color="var(--color-text-muted)" />
+                <span>Edit</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsProgressOpen(true)}

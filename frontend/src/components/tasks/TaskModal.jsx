@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import { AlertCircle } from 'lucide-react';
@@ -8,72 +8,68 @@ export default function TaskModal({
   onClose,
   onSubmit,
   members = [],
+  initialTask = null,
+  isLeader = true,
 }) {
+  const isEditing = Boolean(initialTask);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [assignedTo, setAssignedTo] = useState(members[0]?.user_id || '');
+  const [assignedTo, setAssignedTo] = useState('');
   const [priority, setPriority] = useState('medium');
   const [assignedDate, setAssignedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (initialTask) {
+      setTitle(initialTask.title || '');
+      setDescription(initialTask.description || '');
+      setAssignedTo(initialTask.assigned_to || members[0]?.user_id || '');
+      setPriority(initialTask.priority || 'medium');
+      setAssignedDate(initialTask.assigned_date || new Date().toISOString().split('T')[0]);
+      setDueDate(initialTask.due_date || '');
+    } else {
+      setTitle('');
+      setDescription('');
+      setAssignedTo(members[0]?.user_id || '');
+      setPriority('medium');
+      setAssignedDate(new Date().toISOString().split('T')[0]);
+      setDueDate('');
+    }
+    setError('');
+  }, [initialTask, isOpen, members]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (submitting) return; // Prevent double-click creation
+    if (submitting) return;
     setError('');
-
-    if (!title.trim()) {
-      setError('Task title is required.');
-      return;
-    }
-    if (!assignedTo) {
-      setError('Please select a squad member to assign this task to.');
-      return;
-    }
+    if (!title.trim()) return setError('Task title is required.');
+    if (!assignedTo) return setError('Please select a squad member.');
 
     setSubmitting(true);
     try {
       await onSubmit({
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         assigned_to: Number(assignedTo),
         priority,
         assigned_date: assignedDate,
         due_date: dueDate.trim(),
       });
-      setTitle('');
-      setDescription('');
-      setAssignedDate(new Date().toISOString().split('T')[0]);
-      setDueDate('');
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to create task.');
+      setError(err.message || `Failed to ${isEditing ? 'update' : 'create'} task.`);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Assign Task to Member">
+    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Edit Task' : 'Assign Task to Member'}>
       {error && (
-        <div
-          role="alert"
-          style={{
-            padding: '10px 12px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'rgba(211, 47, 47, 0.12)',
-            border: '1px solid #D32F2F',
-            color: '#D32F2F',
-            fontSize: '0.85rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-          }}
-        >
-          <AlertCircle size={16} />
-          <span>{error}</span>
+        <div role="alert" style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(211,47,47,0.12)', border: '1px solid #D32F2F', color: '#D32F2F', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+          <AlertCircle size={16} /> <span>{error}</span>
         </div>
       )}
 
@@ -98,6 +94,7 @@ export default function TaskModal({
             className="input"
             value={assignedTo}
             onChange={(e) => setAssignedTo(e.target.value)}
+            disabled={!isLeader && isEditing}
             required
           >
             <option value="">Select a member...</option>
@@ -161,11 +158,9 @@ export default function TaskModal({
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-          <Button variant="outline" onClick={onClose} disabled={submitting}>
-            Cancel
-          </Button>
+          <Button variant="outline" onClick={onClose} disabled={submitting}>Cancel</Button>
           <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? 'Assigning...' : 'Assign Task'}
+            {submitting ? (isEditing ? 'Saving...' : 'Assigning...') : (isEditing ? 'Save Changes' : 'Assign Task')}
           </Button>
         </div>
       </form>

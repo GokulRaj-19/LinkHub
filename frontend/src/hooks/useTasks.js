@@ -60,6 +60,11 @@ export function useTasks(teamId = null) {
     );
   };
 
+  const editTask = async (taskId, updates) => {
+    await tasksApi.updateTask(taskId, updates, user.id);
+    await fetchTasks();
+  };
+
   const removeTask = async (taskId) => {
     await tasksApi.deleteTask(taskId, user.id);
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
@@ -79,6 +84,7 @@ export function useTasks(teamId = null) {
     setStatusFilter,
     fetchTasks,
     addTask,
+    editTask,
     updateStatus,
     updateProgress,
     removeTask,

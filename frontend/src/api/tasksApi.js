@@ -54,16 +54,13 @@ export const tasksApi = {
       const tasks = getCollection('tasks');
       const task = tasks.find((t) => t.id === Number(taskId));
       if (!task) throw new Error('Task not found');
-
       const team = getCollection('teams').find((t) => t.id === task.team_id);
       const isLeader = team && team.lead_id === Number(userId);
       const isAssignee = task.assigned_to === Number(userId);
       if (!isLeader && !isAssignee) throw new Error('You do not have permission to update this task.');
-
       task.status = status;
       if (status === 'done') task.progress = 100;
       else if (task.progress === 100) task.progress = 50;
-
       saveCollection('tasks', tasks);
       logAudit(userId, 'UPDATE_TASK_STATUS', 'TASK', taskId, { status });
       return task;
@@ -75,19 +72,37 @@ export const tasksApi = {
       const tasks = getCollection('tasks');
       const task = tasks.find((t) => t.id === Number(taskId));
       if (!task) throw new Error('Task not found');
-
       const team = getCollection('teams').find((t) => t.id === task.team_id);
       const isLeader = team && team.lead_id === Number(userId);
       const isAssignee = task.assigned_to === Number(userId);
       if (!isLeader && !isAssignee) throw new Error('You do not have permission to update this task.');
-
       const p = Math.max(0, Math.min(100, Math.round(Number(progress) || 0)));
       task.progress = p;
       if (p === 100) task.status = 'done';
       else if (task.status === 'done' && p < 100) task.status = 'in_progress';
-
       saveCollection('tasks', tasks);
       logAudit(userId, 'UPDATE_TASK_PROGRESS', 'TASK', taskId, { progress: p });
+      return task;
+    });
+  },
+
+  updateTask: async (taskId, updates, userId) => {
+    return mockRequest(() => {
+      const tasks = getCollection('tasks');
+      const task = tasks.find((t) => t.id === Number(taskId));
+      if (!task) throw new Error('Task not found');
+      const team = getCollection('teams').find((t) => t.id === task.team_id);
+      const isLeader = team && team.lead_id === Number(userId);
+      const isAssignee = task.assigned_to === Number(userId);
+      if (!isLeader && !isAssignee) throw new Error('You do not have permission to edit this task.');
+      if (updates.title !== undefined) task.title = updates.title.trim();
+      if (updates.description !== undefined) task.description = (updates.description || '').trim();
+      if (updates.priority !== undefined) task.priority = updates.priority;
+      if (updates.assigned_date !== undefined) task.assigned_date = (updates.assigned_date || '').trim();
+      if (updates.due_date !== undefined) task.due_date = (updates.due_date || '').trim();
+      if (isLeader && updates.assigned_to !== undefined) task.assigned_to = Number(updates.assigned_to);
+      saveCollection('tasks', tasks);
+      logAudit(userId, 'UPDATE_TASK', 'TASK', taskId, updates);
       return task;
     });
   },
@@ -97,13 +112,11 @@ export const tasksApi = {
       const tasks = getCollection('tasks');
       const task = tasks.find((t) => t.id === Number(taskId));
       if (!task) throw new Error('Task not found');
-
       const teams = getCollection('teams');
       const team = teams.find((t) => t.id === task.team_id);
       if (!team || team.lead_id !== Number(userId)) {
         throw new Error('Only the squad leader can delete tasks.');
       }
-
       const filtered = tasks.filter((t) => t.id !== Number(taskId));
       saveCollection('tasks', filtered);
       return true;
@@ -117,13 +130,10 @@ export const tasksApi = {
         (l) => l.team_id === Number(teamId) && !l.is_deleted
       );
       const users = getCollection('users');
-      return links.map((l) => {
-        const u = users.find((user) => user.id === l.added_by);
-        return {
-          ...l,
-          added_by_name: u ? u.full_name : 'Team Member',
-        };
-      });
+      return links.map((l) => ({
+        ...l,
+        added_by_name: users.find((u) => u.id === l.added_by)?.full_name || 'Team Member',
+      }));
     });
   },
 
@@ -153,15 +163,9 @@ export const tasksApi = {
       const teamLinks = getCollection('team_links');
       const tLink = teamLinks.find((l) => l.id === Number(teamLinkId));
       if (!tLink) throw new Error('Team link not found');
-
       const personalLinks = getCollection('links');
-      const exists = personalLinks.some(
-        (l) => l.user_id === Number(userId) && l.url === tLink.url && !l.is_deleted
-      );
-
-      if (exists) {
-        return { alreadySaved: true };
-      }
+      const exists = personalLinks.some((l) => l.user_id === Number(userId) && l.url === tLink.url && !l.is_deleted);
+      if (exists) return { alreadySaved: true };
 
       const newPersonal = {
         id: Date.now(),
@@ -169,7 +173,7 @@ export const tasksApi = {
         category_id: null,
         title: tLink.title,
         url: tLink.url,
-        note: `Saved from team workspace`,
+        note: 'Saved from team workspace',
         tag: 'team',
         is_starred: false,
         is_pinned: false,
@@ -179,7 +183,6 @@ export const tasksApi = {
         is_deleted: false,
         created_at: new Date().toISOString(),
       };
-
       personalLinks.unshift(newPersonal);
       saveCollection('links', personalLinks);
       return { alreadySaved: false, link: newPersonal };
