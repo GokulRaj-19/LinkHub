@@ -13,7 +13,8 @@ export default function TaskCard({
 }) {
   const [isProgressOpen, setIsProgressOpen] = useState(false);
   const isAssignee = task.assigned_to === Number(currentUserId);
-  const canUpdate = isLeader || isAssignee;
+  const canEdit = isLeader;
+  const canManageProgress = isAssignee;
   const isDone = task.status === 'done';
 
   const getPriorityStyle = (p) => {
@@ -41,7 +42,7 @@ export default function TaskCard({
             <span className="badge" style={{ ...getPriorityStyle(task.priority), textTransform: 'capitalize', fontSize: '0.75rem' }}>
               {task.priority}
             </span>
-            {canUpdate && onEdit && (
+            {canEdit && onEdit && (
               <button
                 type="button"
                 onClick={() => onEdit(task)}
@@ -122,9 +123,9 @@ export default function TaskCard({
           {isDone ? 'Completed' : 'In Progress'}
         </span>
 
-        {canUpdate && (
+        {(canEdit || canManageProgress) && (
           <div style={{ display: 'flex', gap: '6px' }}>
-            {onEdit && (
+            {canEdit && onEdit && (
               <button
                 type="button"
                 onClick={() => onEdit(task)}
@@ -137,43 +138,47 @@ export default function TaskCard({
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={() => setIsProgressOpen(true)}
-              className="btn btn-sm btn-outline"
-              style={{ padding: '4px 8px', fontSize: '0.78rem', gap: '4px' }}
-              title="Update Progress Percentage"
-            >
-              <Percent size={12} color="var(--color-action)" />
-              <span>{task.progress ? `${task.progress}%` : '%'}</span>
-            </button>
+            {canManageProgress && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsProgressOpen(true)}
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: '4px 8px', fontSize: '0.78rem', gap: '4px' }}
+                  title="Update Progress Percentage"
+                >
+                  <Percent size={12} color="var(--color-action)" />
+                  <span>{task.progress ? `${task.progress}%` : '%'}</span>
+                </button>
 
-            {!isDone ? (
-              <button
-                type="button"
-                onClick={() => onUpdateStatus(task.id, 'done')}
-                className="btn btn-sm btn-outline"
-                style={{ padding: '4px 10px', fontSize: '0.78rem', gap: '4px' }}
-              >
-                <CheckCircle2 size={13} color="#2E7D32" />
-                <span>Complete</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onUpdateStatus(task.id, 'in_progress')}
-                className="btn btn-sm btn-outline"
-                style={{ padding: '4px 10px', fontSize: '0.78rem', gap: '4px' }}
-              >
-                <Clock size={13} color="var(--color-action)" />
-                <span>In Progress</span>
-              </button>
+                {!isDone ? (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateStatus(task.id, 'done')}
+                    className="btn btn-sm btn-outline"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem', gap: '4px' }}
+                  >
+                    <CheckCircle2 size={13} color="#2E7D32" />
+                    <span>Complete</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateStatus(task.id, 'in_progress')}
+                    className="btn btn-sm btn-outline"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem', gap: '4px' }}
+                  >
+                    <Clock size={13} color="var(--color-action)" />
+                    <span>In Progress</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
       </div>
 
-      {canUpdate && onUpdateProgress && (
+      {canManageProgress && onUpdateProgress && (
         <ProgressModal
           isOpen={isProgressOpen}
           onClose={() => setIsProgressOpen(false)}

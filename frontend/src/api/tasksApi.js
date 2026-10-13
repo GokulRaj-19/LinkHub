@@ -93,14 +93,13 @@ export const tasksApi = {
       if (!task) throw new Error('Task not found');
       const team = getCollection('teams').find((t) => t.id === task.team_id);
       const isLeader = team && team.lead_id === Number(userId);
-      const isAssignee = task.assigned_to === Number(userId);
-      if (!isLeader && !isAssignee) throw new Error('You do not have permission to edit this task.');
+      if (!isLeader) throw new Error('Only the squad leader can edit task details.');
       if (updates.title !== undefined) task.title = updates.title.trim();
       if (updates.description !== undefined) task.description = (updates.description || '').trim();
       if (updates.priority !== undefined) task.priority = updates.priority;
       if (updates.assigned_date !== undefined) task.assigned_date = (updates.assigned_date || '').trim();
       if (updates.due_date !== undefined) task.due_date = (updates.due_date || '').trim();
-      if (isLeader && updates.assigned_to !== undefined) task.assigned_to = Number(updates.assigned_to);
+      if (updates.assigned_to !== undefined) task.assigned_to = Number(updates.assigned_to);
       saveCollection('tasks', tasks);
       logAudit(userId, 'UPDATE_TASK', 'TASK', taskId, updates);
       return task;
