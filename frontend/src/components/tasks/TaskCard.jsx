@@ -42,18 +42,6 @@ export default function TaskCard({
             <span className="badge" style={{ ...getPriorityStyle(task.priority), textTransform: 'capitalize', fontSize: '0.75rem' }}>
               {task.priority}
             </span>
-            {canEdit && onEdit && (
-              <button
-                type="button"
-                onClick={() => onEdit(task)}
-                aria-label={`Edit task ${task.title}`}
-                className="btn-icon"
-                style={{ padding: '3px', color: 'var(--color-text-muted)' }}
-                title="Edit Task"
-              >
-                <Edit2 size={13} />
-              </button>
-            )}
             {isLeader && onDelete && (
               <button
                 type="button"
