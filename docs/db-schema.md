@@ -97,8 +97,10 @@ CREATE TABLE tasks (
     description TEXT,
     status VARCHAR(50) NOT NULL DEFAULT 'in_progress', -- 'in_progress', 'done'
     priority VARCHAR(50) NOT NULL DEFAULT 'medium', -- 'low', 'medium', 'high'
+    progress INTEGER NOT NULL DEFAULT 0, -- 0 to 100 percentage
     assigned_to BIGINT REFERENCES users(id) ON DELETE SET NULL,
     created_by BIGINT NOT NULL REFERENCES users(id),
+    assigned_date VARCHAR(100),
     due_date VARCHAR(100),
     idempotency_key VARCHAR(128) UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

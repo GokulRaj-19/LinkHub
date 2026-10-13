@@ -13,6 +13,7 @@ export default function TaskModal({
   const [description, setDescription] = useState('');
   const [assignedTo, setAssignedTo] = useState(members[0]?.user_id || '');
   const [priority, setPriority] = useState('medium');
+  const [assignedDate, setAssignedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -38,10 +39,12 @@ export default function TaskModal({
         description,
         assigned_to: Number(assignedTo),
         priority,
+        assigned_date: assignedDate,
         due_date: dueDate.trim(),
       });
       setTitle('');
       setDescription('');
+      setAssignedDate(new Date().toISOString().split('T')[0]);
       setDueDate('');
       onClose();
     } catch (err) {
@@ -106,30 +109,41 @@ export default function TaskModal({
           </select>
         </div>
 
+        <div>
+          <label className="label" htmlFor="task-priority">Priority</label>
+          <select
+            id="task-priority"
+            className="input"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label className="label" htmlFor="task-priority">Priority</label>
-            <select
-              id="task-priority"
+            <label className="label" htmlFor="task-assigned-date">Assigned Date *</label>
+            <input
+              id="task-assigned-date"
+              type="date"
               className="input"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
+              value={assignedDate}
+              onChange={(e) => setAssignedDate(e.target.value)}
+              required
+            />
           </div>
 
           <div>
             <label className="label" htmlFor="task-due">Due Date</label>
             <input
               id="task-due"
-              type="text"
+              type="date"
               className="input"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              placeholder="e.g. Oct 20"
             />
           </div>
         </div>

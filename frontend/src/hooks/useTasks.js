@@ -40,7 +40,23 @@ export function useTasks(teamId = null) {
   const updateStatus = async (taskId, newStatus) => {
     await tasksApi.updateTaskStatus(taskId, newStatus, user.id);
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+      prev.map((t) => (t.id === taskId ? {
+        ...t,
+        status: newStatus,
+        progress: newStatus === 'done' ? 100 : (t.progress === 100 ? 50 : t.progress),
+      } : t))
+    );
+  };
+
+  const updateProgress = async (taskId, newProgress) => {
+    await tasksApi.updateTaskProgress(taskId, newProgress, user.id);
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== taskId) return t;
+        const p = Math.max(0, Math.min(100, Math.round(Number(newProgress) || 0)));
+        const newStatus = p === 100 ? 'done' : (t.status === 'done' && p < 100 ? 'in_progress' : t.status);
+        return { ...t, progress: p, status: newStatus };
+      })
     );
   };
 
@@ -64,6 +80,7 @@ export function useTasks(teamId = null) {
     fetchTasks,
     addTask,
     updateStatus,
+    updateProgress,
     removeTask,
   };
 }

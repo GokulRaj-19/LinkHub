@@ -22,15 +22,8 @@ export default function KanbanView() {
   }, [teams, selectedTeamId]);
 
   const {
-    tasks,
-    allTasks,
-    loading: tasksLoading,
-    error,
-    statusFilter,
-    setStatusFilter,
-    addTask,
-    updateStatus,
-    removeTask,
+    tasks, allTasks, loading: tasksLoading, error,
+    statusFilter, setStatusFilter, addTask, updateStatus, updateProgress, removeTask,
   } = useTasks(selectedTeamId);
 
   const currentTeam = teams.find((t) => t.id === Number(selectedTeamId));
@@ -146,6 +139,7 @@ export default function KanbanView() {
               isLeader={isLeader}
               currentUserId={user?.id}
               onUpdateStatus={updateStatus}
+              onUpdateProgress={updateProgress}
               onDelete={(t) => setTaskToDelete(t)}
             />
           ))}

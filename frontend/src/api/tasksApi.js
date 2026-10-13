@@ -19,28 +19,26 @@ export const tasksApi = {
     });
   },
 
-  createTask: async ({ team_id, title, description, assigned_to, priority, due_date, created_by }) => {
+  createTask: async ({ team_id, title, description, assigned_to, priority, assigned_date, due_date, created_by }) => {
     return mockRequest(() => {
-      // Validate assigned user is current squad member
       const memberships = getCollection('team_memberships');
-      const isMember = memberships.some(
-        (m) => m.team_id === Number(team_id) && m.user_id === Number(assigned_to)
-      );
-      if (!isMember) {
-        throw new Error('Task can only be assigned to a current member of this squad.');
-      }
+      const isMember = memberships.some((m) => m.team_id === Number(team_id) && m.user_id === Number(assigned_to));
+      if (!isMember) throw new Error('Task can only be assigned to a current member of this squad.');
 
       const tasks = getCollection('tasks');
+      const today = new Date().toISOString().split('T')[0];
       const newTask = {
         id: Date.now(),
         team_id: Number(team_id),
         title: title.trim(),
         description: (description || '').trim(),
         status: 'in_progress',
+        progress: 0,
         priority: priority || 'medium',
         assigned_to: Number(assigned_to),
         created_by: Number(created_by),
-        due_date: due_date || '',
+        assigned_date: (assigned_date || today).trim(),
+        due_date: (due_date || '').trim(),
         created_at: new Date().toISOString(),
       };
 
@@ -57,19 +55,39 @@ export const tasksApi = {
       const task = tasks.find((t) => t.id === Number(taskId));
       if (!task) throw new Error('Task not found');
 
-      // Verify permission: Leader of team or the assigned user
-      const teams = getCollection('teams');
-      const team = teams.find((t) => t.id === task.team_id);
+      const team = getCollection('teams').find((t) => t.id === task.team_id);
       const isLeader = team && team.lead_id === Number(userId);
       const isAssignee = task.assigned_to === Number(userId);
-
-      if (!isLeader && !isAssignee) {
-        throw new Error('You do not have permission to update this task.');
-      }
+      if (!isLeader && !isAssignee) throw new Error('You do not have permission to update this task.');
 
       task.status = status;
+      if (status === 'done') task.progress = 100;
+      else if (task.progress === 100) task.progress = 50;
+
       saveCollection('tasks', tasks);
       logAudit(userId, 'UPDATE_TASK_STATUS', 'TASK', taskId, { status });
+      return task;
+    });
+  },
+
+  updateTaskProgress: async (taskId, progress, userId) => {
+    return mockRequest(() => {
+      const tasks = getCollection('tasks');
+      const task = tasks.find((t) => t.id === Number(taskId));
+      if (!task) throw new Error('Task not found');
+
+      const team = getCollection('teams').find((t) => t.id === task.team_id);
+      const isLeader = team && team.lead_id === Number(userId);
+      const isAssignee = task.assigned_to === Number(userId);
+      if (!isLeader && !isAssignee) throw new Error('You do not have permission to update this task.');
+
+      const p = Math.max(0, Math.min(100, Math.round(Number(progress) || 0)));
+      task.progress = p;
+      if (p === 100) task.status = 'done';
+      else if (task.status === 'done' && p < 100) task.status = 'in_progress';
+
+      saveCollection('tasks', tasks);
+      logAudit(userId, 'UPDATE_TASK_PROGRESS', 'TASK', taskId, { progress: p });
       return task;
     });
   },
