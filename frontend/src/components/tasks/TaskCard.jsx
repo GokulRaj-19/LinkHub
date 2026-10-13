@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, User, CheckCircle2, Clock, Trash2, Percent, Edit2 } from 'lucide-react';
 import ProgressModal from './ProgressModal';
+import TaskWorkDetails from './TaskWorkDetails';
 
 export default function TaskCard({
   task,
@@ -96,6 +97,8 @@ export default function TaskCard({
             <div style={{ width: `${task.progress || 0}%`, height: '100%', backgroundColor: isDone ? '#2E7D32' : 'var(--color-action)', transition: 'width var(--transition-fast)' }} />
           </div>
         </div>
+
+        <TaskWorkDetails task={task} canManageProgress={canManageProgress} onOpenModal={() => setIsProgressOpen(true)} />
       </div>
 
       {/* Process & Status Controls */}

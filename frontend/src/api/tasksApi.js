@@ -35,6 +35,7 @@ export const tasksApi = {
         status: 'in_progress',
         progress: 0,
         priority: priority || 'medium',
+        member_notes: '',
         assigned_to: Number(assigned_to),
         created_by: Number(created_by),
         assigned_date: (assigned_date || today).trim(),
@@ -67,7 +68,7 @@ export const tasksApi = {
     });
   },
 
-  updateTaskProgress: async (taskId, progress, userId) => {
+  updateTaskProgress: async (taskId, progress, userId, memberNotes = null) => {
     return mockRequest(() => {
       const tasks = getCollection('tasks');
       const task = tasks.find((t) => t.id === Number(taskId));
@@ -75,13 +76,14 @@ export const tasksApi = {
       const team = getCollection('teams').find((t) => t.id === task.team_id);
       const isLeader = team && team.lead_id === Number(userId);
       const isAssignee = task.assigned_to === Number(userId);
-      if (!isLeader && !isAssignee) throw new Error('You do not have permission to update this task.');
+      if (!isLeader && !isAssignee) throw new Error('Only the assigned member can update progress.');
       const p = Math.max(0, Math.min(100, Math.round(Number(progress) || 0)));
       task.progress = p;
+      if (memberNotes !== null && memberNotes !== undefined) task.member_notes = memberNotes.trim();
       if (p === 100) task.status = 'done';
       else if (task.status === 'done' && p < 100) task.status = 'in_progress';
       saveCollection('tasks', tasks);
-      logAudit(userId, 'UPDATE_TASK_PROGRESS', 'TASK', taskId, { progress: p });
+      logAudit(userId, 'UPDATE_TASK_PROGRESS', 'TASK', taskId, { progress: p, member_notes: task.member_notes });
       return task;
     });
   },
@@ -100,6 +102,7 @@ export const tasksApi = {
       if (updates.assigned_date !== undefined) task.assigned_date = (updates.assigned_date || '').trim();
       if (updates.due_date !== undefined) task.due_date = (updates.due_date || '').trim();
       if (updates.assigned_to !== undefined) task.assigned_to = Number(updates.assigned_to);
+      if (updates.member_notes !== undefined) task.member_notes = updates.member_notes.trim();
       saveCollection('tasks', tasks);
       logAudit(userId, 'UPDATE_TASK', 'TASK', taskId, updates);
       return task;

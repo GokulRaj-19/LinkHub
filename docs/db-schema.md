@@ -98,6 +98,7 @@ CREATE TABLE tasks (
     status VARCHAR(50) NOT NULL DEFAULT 'in_progress', -- 'in_progress', 'done'
     priority VARCHAR(50) NOT NULL DEFAULT 'medium', -- 'low', 'medium', 'high'
     progress INTEGER NOT NULL DEFAULT 0, -- 0 to 100 percentage
+    member_notes TEXT, -- details of work done by assigned member
     assigned_to BIGINT REFERENCES users(id) ON DELETE SET NULL,
     created_by BIGINT NOT NULL REFERENCES users(id),
     assigned_date VARCHAR(100),

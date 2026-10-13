@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import { Percent, CheckCircle2 } from 'lucide-react';
+import { Percent, CheckCircle2, MessageSquare } from 'lucide-react';
 
 export default function ProgressModal({
   isOpen,
@@ -10,10 +10,12 @@ export default function ProgressModal({
   onSaveProgress,
 }) {
   const [progress, setProgress] = useState(0);
+  const [memberNotes, setMemberNotes] = useState('');
 
   useEffect(() => {
     if (task) {
       setProgress(task.progress || 0);
+      setMemberNotes(task.member_notes || '');
     }
   }, [task, isOpen]);
 
@@ -21,65 +23,28 @@ export default function ProgressModal({
 
   const handleSave = () => {
     if (task) {
-      onSaveProgress(task.id, progress);
+      onSaveProgress(task.id, progress, memberNotes);
     }
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Update Task Progress" maxWidth="420px">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Update Progress & Details" maxWidth="430px">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
-          <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Task</div>
-          <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>
-            {task?.title}
-          </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Task</div>
+          <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '2px' }}>{task?.title}</div>
         </div>
 
         {/* Big percentage display & preview */}
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '16px',
-            borderRadius: 'var(--radius-md)',
-            backgroundColor: 'var(--color-surface-subtle)',
-            border: '1px solid var(--color-border-subtle)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '2.5rem',
-              fontWeight: 800,
-              fontFamily: 'var(--font-heading)',
-              color: progress === 100 ? '#2E7D32' : 'var(--color-action)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-            }}
-          >
+        <div style={{ textAlign: 'center', padding: '14px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-surface-subtle)', border: '1px solid var(--color-border-subtle)' }}>
+          <div style={{ fontSize: '2.4rem', fontWeight: 800, fontFamily: 'var(--font-heading)', color: progress === 100 ? '#2E7D32' : 'var(--color-action)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             <span>{progress}%</span>
             {progress === 100 && <CheckCircle2 size={24} color="#2E7D32" />}
           </div>
 
-          <div
-            style={{
-              width: '100%',
-              height: '8px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-border-subtle)',
-              overflow: 'hidden',
-              marginTop: '10px',
-            }}
-          >
-            <div
-              style={{
-                width: `${progress}%`,
-                height: '100%',
-                backgroundColor: progress === 100 ? '#2E7D32' : 'var(--color-action)',
-                transition: 'width var(--transition-fast)',
-              }}
-            />
+          <div style={{ width: '100%', height: '8px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--color-border-subtle)', overflow: 'hidden', marginTop: '8px' }}>
+            <div style={{ width: `${progress}%`, height: '100%', backgroundColor: progress === 100 ? '#2E7D32' : 'var(--color-action)', transition: 'width var(--transition-fast)' }} />
           </div>
         </div>
 
@@ -94,10 +59,7 @@ export default function ProgressModal({
                 onClick={() => setProgress(val)}
                 className="btn btn-sm"
                 style={{
-                  padding: '6px 0',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  borderRadius: 'var(--radius-sm)',
+                  padding: '5px 0', fontSize: '0.8rem', fontWeight: 700, borderRadius: 'var(--radius-sm)',
                   backgroundColor: progress === val ? 'var(--color-action)' : 'transparent',
                   color: progress === val ? 'var(--color-text-on-action)' : 'var(--color-text)',
                   border: '1px solid var(--color-border)',
@@ -138,19 +100,32 @@ export default function ProgressModal({
           </div>
         </div>
 
+        {/* Member Details Message Box */}
+        <div>
+          <label className="label" htmlFor="member-notes" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <MessageSquare size={13} color="var(--color-action)" />
+            <span>What have you done? (Work Details)</span>
+          </label>
+          <textarea
+            id="member-notes"
+            className="input"
+            rows={2}
+            value={memberNotes}
+            onChange={(e) => setMemberNotes(e.target.value)}
+            placeholder="Add details about what you have done on this task..."
+            style={{ fontSize: '0.85rem' }}
+          />
+        </div>
+
         {progress === 100 && (
           <p style={{ fontSize: '0.82rem', color: '#2E7D32', fontWeight: 600, margin: 0 }}>
             ✓ Setting progress to 100% will automatically mark this task as Completed.
           </p>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSave} icon={Percent}>
-            Save Progress
-          </Button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px' }}>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={handleSave} icon={Percent}>Save Updates</Button>
         </div>
       </div>
     </Modal>

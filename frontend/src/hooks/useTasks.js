@@ -48,14 +48,16 @@ export function useTasks(teamId = null) {
     );
   };
 
-  const updateProgress = async (taskId, newProgress) => {
-    await tasksApi.updateTaskProgress(taskId, newProgress, user.id);
+  const updateProgress = async (taskId, newProgress, memberNotes = null) => {
+    await tasksApi.updateTaskProgress(taskId, newProgress, user.id, memberNotes);
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== taskId) return t;
         const p = Math.max(0, Math.min(100, Math.round(Number(newProgress) || 0)));
         const newStatus = p === 100 ? 'done' : (t.status === 'done' && p < 100 ? 'in_progress' : t.status);
-        return { ...t, progress: p, status: newStatus };
+        const updated = { ...t, progress: p, status: newStatus };
+        if (memberNotes !== null && memberNotes !== undefined) updated.member_notes = memberNotes.trim();
+        return updated;
       })
     );
   };
