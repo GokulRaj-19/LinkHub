@@ -69,6 +69,19 @@ linkhub/
 │   ├── db-schema.md
 │   └── ui-design-link.md
 │
+├── backend/                    # Flask 3.x REST API (<200 lines/file)
+│   ├── run.py
+│   ├── seed.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   ├── app/
+│   │   ├── config.py
+│   │   ├── extensions.py
+│   │   ├── models/             # User, SavedLink, Category, Team, Task, AuditLog
+│   │   ├── routes/             # auth, users, links, categories, teams, tasks, admin
+│   │   └── utils/              # rate_limit, audit, decorators, helpers
+│   └── tests/                  # 22 automated pytest unit & integration tests
+│
 └── frontend/                   # React 19 + Vite
     ├── index.html
     ├── package.json

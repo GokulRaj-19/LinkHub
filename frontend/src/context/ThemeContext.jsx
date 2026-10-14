@@ -1,33 +1,39 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 
 const ThemeContext = createContext();
 
 export const THEMES = {
-  SKETCH: 'sketch',
-  BRAND: 'brand',
-  DARK: 'dark',
-  HIGH_CONTRAST: 'hc',
+  SKETCH: "sketch",
+  BRAND: "brand",
+  DARK: "dark",
+  HIGH_CONTRAST: "hc",
 };
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
-    return localStorage.getItem('linkhub_theme') || THEMES.SKETCH;
+    return localStorage.getItem("linkhub_theme") || THEMES.SKETCH;
   });
 
-  const setTheme = (newTheme) => {
+  const setTheme = useCallback((newTheme) => {
     if (Object.values(THEMES).includes(newTheme)) {
       setThemeState(newTheme);
-      localStorage.setItem('linkhub_theme', newTheme);
-      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem("linkhub_theme", newTheme);
+      document.documentElement.setAttribute("data-theme", newTheme);
     }
-  };
+  }, []);
 
-  const resetTheme = () => {
+  const resetTheme = useCallback(() => {
     setTheme(THEMES.SKETCH);
-  };
+  }, [setTheme]);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
   return (
@@ -39,8 +45,10 @@ export function ThemeProvider({ children }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext);
+
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
+
   return context;
 }

@@ -1,42 +1,43 @@
-// Mock API Client wrapper simulating network latency and REST semantics
-import { initSeedData } from '../mock/seed';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000/api";
 
-// Ensure storage is initialized
-initSeedData();
+export async function apiRequest(endpoint, options = {}) {
+  const token = sessionStorage.getItem("linkhub_token");
 
-export const delay = (ms = 150) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export const getCollection = (collectionName) => {
-  const data = localStorage.getItem(`linkhub_${collectionName}`);
-  return data ? JSON.parse(data) : [];
-};
-
-export const saveCollection = (collectionName, data) => {
-  localStorage.setItem(`linkhub_${collectionName}`, JSON.stringify(data));
-};
-
-export const logAudit = (userId, action, targetType, targetId, details = {}) => {
-  const logs = getCollection('audit_logs');
-  const newLog = {
-    id: Date.now(),
-    user_id: userId,
-    action,
-    target_type: targetType,
-    target_id: String(targetId),
-    ip_address: '127.0.0.1',
-    details,
-    created_at: new Date().toISOString(),
+  const headers = {
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
   };
-  logs.unshift(newLog);
-  saveCollection('audit_logs', logs);
-};
 
-// Generic mock request helper
-export async function mockRequest(fn) {
-  await delay(120);
-  try {
-    return await fn();
-  } catch (error) {
-    throw new Error(error.message || 'API request failed');
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await response.json()
+    : null;
+
+  if (!response.ok) {
+    const error = new Error(
+      data?.message || data?.msg || "API request failed.",
+    );
+
+    if (data?.hasDependentLinks !== undefined) {
+      error.hasDependentLinks = data.hasDependentLinks;
+    }
+
+    if (data?.linkCount !== undefined) {
+      error.linkCount = data.linkCount;
+    }
+
+    throw error;
   }
+
+  return data;
 }
+
+export const delay = (ms = 150) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
