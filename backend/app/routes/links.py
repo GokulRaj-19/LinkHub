@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.saved_link import SavedLink
 from app.utils.audit import log_audit
@@ -83,14 +84,33 @@ def create_link():
         return error_response("Please enter a valid HTTP or HTTPS URL.", 400)
 
     norm_url = normalize_url(raw_url)
-    existing = SavedLink.query.filter_by(
-        user_id=user.id, url=norm_url, is_deleted=False
-    ).first()
-    if existing:
+    existing = SavedLink.query.filter_by(user_id=user.id, url=norm_url).first()
+    if existing and not existing.is_deleted:
         return error_response("This URL already exists in your vault.", 409)
 
     is_pinned = bool(data.get("is_pinned", False))
     now = datetime.now(timezone.utc)
+
+    if existing and existing.is_deleted:
+        # Restore previously soft-deleted bookmark with updated fields
+        existing.is_deleted = False
+        existing.title = title
+        existing.category_id = int(data["category_id"]) if data.get("category_id") else None
+        existing.note = (data.get("note") or "").strip()
+        existing.tag = (data.get("tag") or "").strip()
+        existing.is_starred = bool(data.get("is_starred", False))
+        existing.is_pinned = is_pinned
+        existing.pinned_at = now if is_pinned else None
+        existing.source_link_id = data.get("source_link_id")
+        existing.created_at = now
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return error_response("This URL already exists in your vault.", 409)
+        log_audit(user.id, "RESTORE_LINK", "LINK", existing.id, {"title": existing.title})
+        return jsonify(existing.to_dict()), 201
+
     link = SavedLink(
         user_id=user.id,
         category_id=int(data["category_id"]) if data.get("category_id") else None,
@@ -104,7 +124,12 @@ def create_link():
         source_link_id=data.get("source_link_id"),
     )
     db.session.add(link)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("This URL already exists in your vault.", 409)
+
     log_audit(user.id, "CREATE_LINK", "LINK", link.id, {"title": link.title})
     return jsonify(link.to_dict()), 201
 
@@ -127,10 +152,13 @@ def update_link(link_id: int):
             SavedLink.id != link.id,
             SavedLink.user_id == user.id,
             SavedLink.url == norm_url,
-            SavedLink.is_deleted == False,
         ).first()
         if dup:
-            return error_response("This URL already exists in your vault.", 409)
+            if not dup.is_deleted:
+                return error_response("This URL already exists in your vault.", 409)
+            # Remove old soft-deleted tombstone row so URL can be reassigned
+            db.session.delete(dup)
+            db.session.flush()
         link.url = norm_url
 
     if "title" in data:
