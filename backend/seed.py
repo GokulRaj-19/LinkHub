@@ -7,12 +7,10 @@ from app.models.category import Category
 from app.models.user import User
 
 
-def run_seed():
+def run_seed(target_app=None):
     """Create tables and insert demo data."""
 
-    app = create_app()
-
-    with app.app_context():
+    def _seed_body():
         # Retry connection if database is still provisioning or spinning up
         for attempt in range(5):
             try:
@@ -107,6 +105,13 @@ def run_seed():
             db.session.commit()
 
         print("Seed completed successfully.")
+
+    if target_app:
+        _seed_body()
+    else:
+        app = create_app()
+        with app.app_context():
+            _seed_body()
 
 
 if __name__ == "__main__":

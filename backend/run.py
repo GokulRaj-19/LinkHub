@@ -7,10 +7,15 @@ from app.extensions import db
 env = os.getenv("FLASK_ENV", "development")
 app = create_app(env)
 
-# Auto-create tables on startup (works with both Gunicorn and local development)
+# Auto-create tables and seed initial demo data on startup
 with app.app_context():
     try:
         db.create_all()
+        try:
+            from seed import run_seed
+            run_seed(app)
+        except Exception as seed_err:
+            app.logger.warning("Database seed warning: %s", seed_err)
     except Exception as exc:
         app.logger.warning("Database auto-init skipped or failed: %s", exc)
 
