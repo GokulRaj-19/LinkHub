@@ -35,7 +35,12 @@ def create_team_task(team_id: int):
     """Create and assign a squad task (leader only) with idempotency protection."""
     user = get_authenticated_user()
     team = db.session.get(Team, team_id)
-    if not team or (team.lead_id != user.id and user.role != "admin"):
+    if not team:
+        return error_response("Team not found.", 404)
+
+    membership = TeamMembership.query.filter_by(team_id=team.id, user_id=user.id).first()
+    is_leader = (team.lead_id == user.id) or (membership and membership.role == "lead") or (user.role == "admin")
+    if not is_leader:
         return error_response("Only the squad leader can create and assign tasks.", 403)
 
     data = request.get_json() or {}
@@ -50,13 +55,15 @@ def create_team_task(team_id: int):
         return error_response("Task title is required.", 400)
 
     assigned_to = data.get("assigned_to")
-    if assigned_to:
-        target_id = int(assigned_to)
-        is_member = TeamMembership.query.filter_by(team_id=team.id, user_id=target_id).first()
-        if not is_member:
-            return error_response("Tasks can only be assigned to current members of this squad.", 400)
-    else:
-        target_id = None
+    target_id = None
+    if assigned_to is not None and str(assigned_to).strip() != "":
+        try:
+            target_id = int(assigned_to)
+            is_member = TeamMembership.query.filter_by(team_id=team.id, user_id=target_id).first()
+            if not is_member:
+                return error_response("Tasks can only be assigned to current members of this squad.", 400)
+        except (ValueError, TypeError):
+            return error_response("Invalid squad member ID.", 400)
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     task = Task(
@@ -71,6 +78,7 @@ def create_team_task(team_id: int):
         assigned_date=(data.get("assigned_date") or today).strip(),
         due_date=(data.get("due_date") or "").strip(),
         member_notes=(data.get("member_notes") or "").strip(),
+        unassigned_flag=target_id is None,
         idempotency_key=str(idempotency_key) if idempotency_key else None,
     )
     db.session.add(task)
@@ -90,7 +98,8 @@ def update_task(task_id: int):
         return error_response("Task not found.", 404)
 
     team = db.session.get(Team, task.team_id)
-    is_leader = team and (team.lead_id == user.id or user.role == "admin")
+    membership = TeamMembership.query.filter_by(team_id=team.id, user_id=user.id).first() if team else None
+    is_leader = bool(team and ((team.lead_id == user.id) or (membership and membership.role == "lead") or (user.role == "admin")))
     is_assignee = task.assigned_to == user.id
 
     if not is_leader and not is_assignee:
@@ -135,13 +144,18 @@ def update_task(task_id: int):
         if "assigned_date" in data:
             task.assigned_date = (data["assigned_date"] or "").strip()
         if "assigned_to" in data:
-            target_id = int(data["assigned_to"]) if data["assigned_to"] else None
-            if target_id:
-                is_mem = TeamMembership.query.filter_by(team_id=team.id, user_id=target_id).first()
-                if not is_mem:
-                    return error_response("Tasks can only be assigned to members of this squad.", 400)
+            target_id = None
+            raw_assigned = data["assigned_to"]
+            if raw_assigned is not None and str(raw_assigned).strip() != "":
+                try:
+                    target_id = int(raw_assigned)
+                    is_mem = TeamMembership.query.filter_by(team_id=team.id, user_id=target_id).first()
+                    if not is_mem:
+                        return error_response("Tasks can only be assigned to members of this squad.", 400)
+                except (ValueError, TypeError):
+                    return error_response("Invalid member ID for task assignment.", 400)
             task.assigned_to = target_id
-            task.unassigned_flag = False
+            task.unassigned_flag = target_id is None
 
     db.session.commit()
     log_audit(user.id, "UPDATE_TASK", "TASK", task.id, {"status": task.status, "progress": task.progress})

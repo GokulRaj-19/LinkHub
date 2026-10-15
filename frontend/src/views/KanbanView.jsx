@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTeams } from '../hooks/useTeams';
 import { useTasks } from '../hooks/useTasks';
+import { teamsApi } from '../api/teamsApi';
 import TaskCard from '../components/tasks/TaskCard';
 import TaskModal from '../components/tasks/TaskModal';
 import Modal from '../components/common/Modal';
@@ -10,15 +12,45 @@ import { Plus, Users, Clock, CheckCircle2, Inbox, AlertTriangle } from 'lucide-r
 
 export default function KanbanView() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const paramTeamId = searchParams.get('teamId');
   const { teams, loading: teamsLoading } = useTeams();
-  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [selectedTeamId, setSelectedTeamId] = useState(paramTeamId ? Number(paramTeamId) : null);
+  const [teamMembers, setTeamMembers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
   useEffect(() => {
-    if (teams.length > 0 && !selectedTeamId) setSelectedTeamId(teams[0].id);
-  }, [teams, selectedTeamId]);
+    if (paramTeamId) {
+      const match = teams.find((t) => t.id === Number(paramTeamId));
+      if (match) {
+        setSelectedTeamId(match.id);
+        return;
+      }
+    }
+    if (teams.length > 0 && (!selectedTeamId || !teams.some((t) => t.id === selectedTeamId))) {
+      setSelectedTeamId(teams[0].id);
+    }
+  }, [teams, paramTeamId, selectedTeamId]);
+
+  useEffect(() => {
+    if (!selectedTeamId) {
+      setTeamMembers([]);
+      return;
+    }
+    let isCurrent = true;
+    teamsApi.getTeam(selectedTeamId)
+      .then((detail) => {
+        if (isCurrent && detail && Array.isArray(detail.members)) {
+          setTeamMembers(detail.members);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load team members:', err);
+      });
+    return () => { isCurrent = false; };
+  }, [selectedTeamId]);
 
   const {
     tasks, allTasks, loading: tasksLoading, error,
@@ -26,7 +58,13 @@ export default function KanbanView() {
   } = useTasks(selectedTeamId);
 
   const currentTeam = teams.find((t) => t.id === Number(selectedTeamId));
-  const isLeader = currentTeam?.my_role === 'lead';
+  const isLeader = Boolean(
+    currentTeam && (
+      currentTeam.my_role === 'lead' ||
+      currentTeam.lead_id === user?.id ||
+      user?.role === 'admin'
+    )
+  );
 
   const inProgressCount = allTasks.filter((t) => t.status === 'in_progress').length;
   const doneCount = allTasks.filter((t) => t.status === 'done').length;
@@ -37,21 +75,17 @@ export default function KanbanView() {
     { key: 'done', label: `Completed (${doneCount})`, icon: CheckCircle2 },
   ];
 
-  const teamMembers = currentTeam
-    ? JSON.parse(localStorage.getItem('linkhub_team_memberships') || '[]')
-        .filter((m) => m.team_id === currentTeam.id)
-        .map((m) => ({
-          user_id: m.user_id,
-          name: JSON.parse(localStorage.getItem('linkhub_users') || '[]').find((x) => x.id === m.user_id)?.full_name || 'Member',
-          role: m.role,
-        }))
-    : [];
-
   const handleConfirmDelete = async () => {
     if (taskToDelete) {
       await removeTask(taskToDelete.id);
       setTaskToDelete(null);
     }
+  };
+
+  const handleTeamChange = (newTeamId) => {
+    const id = Number(newTeamId);
+    setSelectedTeamId(id);
+    setSearchParams({ teamId: id });
   };
 
   return (
@@ -65,19 +99,23 @@ export default function KanbanView() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {teams.length > 1 && (
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {teams.length > 1 ? (
             <select
               className="input"
               value={selectedTeamId || ''}
-              onChange={(e) => setSelectedTeamId(Number(e.target.value))}
+              onChange={(e) => handleTeamChange(e.target.value)}
               style={{ minWidth: '180px', borderRadius: 'var(--radius-full)' }}
             >
               {teams.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
-          )}
+          ) : currentTeam ? (
+            <span className="badge" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+              Squad: {currentTeam.name}
+            </span>
+          ) : null}
 
           {isLeader && (
             <Button variant="primary" onClick={() => setIsModalOpen(true)} icon={Plus}>

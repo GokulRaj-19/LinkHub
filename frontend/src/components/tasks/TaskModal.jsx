@@ -25,14 +25,14 @@ export default function TaskModal({
     if (initialTask) {
       setTitle(initialTask.title || '');
       setDescription(initialTask.description || '');
-      setAssignedTo(initialTask.assigned_to || members[0]?.user_id || '');
+      setAssignedTo(initialTask.assigned_to != null ? String(initialTask.assigned_to) : (members[0]?.user_id != null ? String(members[0].user_id) : ''));
       setPriority(initialTask.priority || 'medium');
       setAssignedDate(initialTask.assigned_date || new Date().toISOString().split('T')[0]);
       setDueDate(initialTask.due_date || '');
     } else {
       setTitle('');
       setDescription('');
-      setAssignedTo(members[0]?.user_id || '');
+      setAssignedTo(members[0]?.user_id != null ? String(members[0].user_id) : '');
       setPriority('medium');
       setAssignedDate(new Date().toISOString().split('T')[0]);
       setDueDate('');
@@ -92,15 +92,15 @@ export default function TaskModal({
           <select
             id="task-assigned"
             className="input"
-            value={assignedTo}
+            value={assignedTo || ''}
             onChange={(e) => setAssignedTo(e.target.value)}
             disabled={!isLeader && isEditing}
             required
           >
-            <option value="">Select a member...</option>
+            <option value="">{members.length === 0 ? 'No members found in squad' : 'Select a member...'}</option>
             {members.map((m) => (
-              <option key={m.user_id} value={m.user_id}>
-                {m.name} ({m.role})
+              <option key={m.user_id} value={String(m.user_id)}>
+                {m.name || 'Member'} ({m.role || 'member'}{m.email ? ` - ${m.email}` : ''})
               </option>
             ))}
           </select>
