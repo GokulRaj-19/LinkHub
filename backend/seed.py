@@ -1,5 +1,6 @@
 """Seed the LinkHub database with demo data."""
 
+import time
 from app import create_app
 from app.extensions import db
 from app.models.category import Category
@@ -12,8 +13,17 @@ def run_seed():
     app = create_app()
 
     with app.app_context():
-        # Create missing tables without deleting existing tables.
-        db.create_all()
+        # Retry connection if database is still provisioning or spinning up
+        for attempt in range(5):
+            try:
+                db.create_all()
+                break
+            except Exception as err:
+                if attempt == 4:
+                    print(f"Database connection error after retries: {err}")
+                    return
+                print(f"Waiting for database to accept connections (attempt {attempt + 1}/5)...")
+                time.sleep(3)
 
         print("Checking demo users...")
 

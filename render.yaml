@@ -13,7 +13,7 @@ services:
     rootDir: backend
     plan: free
     buildCommand: pip install -r requirements.txt
-    buildCommand: pip install -r requirements.txt && python seed.py
+    preDeployCommand: python seed.py
     startCommand: gunicorn run:app
     healthCheckPath: /api/health
     envVars:
@@ -39,7 +39,6 @@ services:
     name: team3-lms-frontend
     runtime: static
     rootDir: frontend
-    plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     routes:
@@ -51,7 +50,7 @@ services:
         fromService:
           type: web
           name: team3-lms-backend
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
 
 databases:
   # ----------------------------------------------------------------------
