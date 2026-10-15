@@ -7,7 +7,7 @@ from app.extensions import db
 from app.models.saved_link import SavedLink
 from app.utils.audit import log_audit
 from app.utils.decorators import get_authenticated_user
-from app.utils.helpers import error_response, normalize_url
+from app.utils.helpers import error_response, normalize_url, validate_url
 
 links_bp = Blueprint("links", __name__, url_prefix="/api/links")
 
@@ -39,7 +39,10 @@ def get_links():
             )
         )
     if category_id:
-        query = query.filter_by(category_id=int(category_id))
+        try:
+            query = query.filter_by(category_id=int(category_id))
+        except (ValueError, TypeError):
+            pass
     if tag:
         query = query.filter(SavedLink.tag.ilike(f"%{tag}%"))
     if starred:
@@ -49,15 +52,15 @@ def get_links():
 
     # Rule: Pinned links sort first (most recently pinned first)
     pinned = [l.to_dict() for l in links if l.is_pinned]
-    pinned.sort(key=lambda x: x.get("pinned_at") or "", reverse=True)
+    pinned.sort(key=lambda x: (x.get("pinned_at") or "", x.get("id") or 0), reverse=True)
 
     unpinned = [l.to_dict() for l in links if not l.is_pinned]
     if sort_by == "title":
         unpinned.sort(key=lambda x: x.get("title", "").lower())
     elif sort_by in ("clicks", "most_clicked"):
-        unpinned.sort(key=lambda x: x.get("click_count", 0), reverse=True)
+        unpinned.sort(key=lambda x: (x.get("click_count", 0), x.get("id") or 0), reverse=True)
     else:
-        unpinned.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+        unpinned.sort(key=lambda x: (x.get("created_at") or "", x.get("id") or 0), reverse=True)
 
     return jsonify({"pinned": pinned, "unpinned": unpinned, "all": pinned + unpinned})
 
@@ -75,6 +78,9 @@ def create_link():
     title = (data.get("title") or "").strip()
     if not raw_url or not title:
         return error_response("URL and title are required.", 400)
+
+    if not validate_url(raw_url):
+        return error_response("Please enter a valid HTTP or HTTPS URL.", 400)
 
     norm_url = normalize_url(raw_url)
     existing = SavedLink.query.filter_by(
@@ -114,6 +120,8 @@ def update_link(link_id: int):
 
     data = request.get_json() or {}
     if "url" in data and data["url"]:
+        if not validate_url(data["url"]):
+            return error_response("Please enter a valid HTTP or HTTPS URL.", 400)
         norm_url = normalize_url(data["url"])
         dup = SavedLink.query.filter(
             SavedLink.id != link.id,

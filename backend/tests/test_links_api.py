@@ -32,6 +32,13 @@ def test_post_link_missing_required_fields(client, priya_headers):
     assert res_no_title.status_code == 400
 
 
+def test_post_link_invalid_url_rejected(client, priya_headers):
+    """Test POST /api/links rejects malicious or invalid URL schemes."""
+    res = client.post("/api/links", json={"title": "Hacker Link", "url": "javascript:alert(1)"}, headers=priya_headers)
+    assert res.status_code == 400
+    assert "valid" in res.get_json()["message"].lower()
+
+
 def test_get_links_list_and_filters(client, priya_headers):
     """Test GET /api/links returns links with category, tag, search, and sorting."""
     # Seed specific links for testing

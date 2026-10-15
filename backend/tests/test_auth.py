@@ -26,6 +26,17 @@ def test_register_duplicate_email(client):
     assert res.status_code == 409
 
 
+def test_register_short_password_rejected(client):
+    """Test that registration with password < 6 chars is rejected."""
+    res = client.post("/api/auth/register", json={
+        "full_name": "Short Password",
+        "email": "short@example.com",
+        "password": "123",
+    })
+    assert res.status_code == 400
+    assert "at least 6 characters" in res.get_json()["message"]
+
+
 def test_login_inactive_user_blocked(client):
     """Test that inactive users are blocked at login per specification."""
     res = client.post("/api/auth/login", json={

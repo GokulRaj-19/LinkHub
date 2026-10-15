@@ -47,3 +47,17 @@ def test_delete_category_with_links_dependency_rule(client, priya_headers):
     links_res = client.get("/api/links", headers=priya_headers)
     target_link = next(l for l in links_res.get_json()["all"] if l["id"] == link_id)
     assert target_link["category_id"] == cat_b
+
+
+def test_delete_category_with_soft_deleted_links_succeeds(client, priya_headers):
+    """Test deleting category with only soft-deleted links unlinks them and succeeds without FK error."""
+    cat = client.post("/api/categories", json={"name": "Temp Cat"}, headers=priya_headers).get_json()["id"]
+    link = client.post("/api/links", json={"title": "To Soft Delete", "url": "https://soft-del.com", "category_id": cat}, headers=priya_headers).get_json()["id"]
+
+    # Soft delete the link
+    client.delete(f"/api/links/{link}", headers=priya_headers)
+
+    # Delete category should succeed without error
+    del_res = client.delete(f"/api/categories/{cat}", headers=priya_headers)
+    assert del_res.status_code == 200
+    assert del_res.get_json()["success"] is True

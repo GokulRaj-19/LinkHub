@@ -183,3 +183,23 @@ def toggle_team_code(team_id: int):
 
     db.session.commit()
     return jsonify({"code_active": team.code_active, "team_code": team.team_code})
+
+
+@teams_bp.route("/<int:team_id>", methods=["DELETE"])
+@jwt_required()
+def delete_team(team_id: int):
+    """Delete squad workspace (leader or admin only)."""
+    user = get_authenticated_user()
+    team = db.session.get(Team, team_id)
+    if not team:
+        return error_response("Team not found.", 404)
+
+    if team.lead_id != user.id and user.role != "admin":
+        return error_response("Forbidden: Only the squad leader can delete this team.", 403)
+
+    team_name = team.name
+    db.session.delete(team)
+    db.session.commit()
+    log_audit(user.id, "DELETE_TEAM", "TEAM", team_id, {"name": team_name})
+    return jsonify({"success": True, "message": f'Team "{team_name}" deleted successfully.'})
+

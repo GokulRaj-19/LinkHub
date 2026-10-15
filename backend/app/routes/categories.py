@@ -150,6 +150,12 @@ def delete_category(cat_id: int):
             {"category_id": target_cat.id}, synchronize_session="fetch"
         )
         db.session.commit()
+    else:
+        # Clear category_id on soft-deleted links to prevent FK RESTRICT constraint violation
+        SavedLink.query.filter_by(category_id=cat_id, is_deleted=True).update(
+            {"category_id": None}, synchronize_session="fetch"
+        )
+        db.session.commit()
 
     db.session.delete(category)
     db.session.commit()

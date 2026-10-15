@@ -29,6 +29,9 @@ def register():
     if not full_name or not email or not password:
         return error_response("Full name, email, and password are required.", 400)
 
+    if len(password) < 6:
+        return error_response("Password must be at least 6 characters long.", 400)
+
     if User.query.filter_by(email=email).first():
         return error_response("An account with this email already exists.", 409)
 

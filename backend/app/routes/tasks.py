@@ -109,12 +109,15 @@ def update_task(task_id: int):
                 task.progress = 50
 
     if "progress" in data:
-        p = max(0, min(100, int(data["progress"] or 0)))
-        task.progress = p
-        if p == 100:
-            task.status = "done"
-        elif task.status == "done" and p < 100:
-            task.status = "in_progress"
+        try:
+            p = max(0, min(100, int(data["progress"] or 0)))
+            task.progress = p
+            if p == 100:
+                task.status = "done"
+            elif task.status == "done" and p < 100:
+                task.status = "in_progress"
+        except (ValueError, TypeError):
+            return error_response("Progress must be an integer between 0 and 100.", 400)
 
     if "member_notes" in data:
         task.member_notes = (data["member_notes"] or "").strip()

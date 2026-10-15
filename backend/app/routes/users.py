@@ -40,6 +40,8 @@ def update_profile():
             user.email = new_email
 
     if "password" in data and data["password"]:
+        if len(data["password"]) < 6:
+            return error_response("Password must be at least 6 characters long.", 400)
         user.set_password(data["password"])
 
     db.session.commit()

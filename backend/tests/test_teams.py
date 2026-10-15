@@ -63,3 +63,17 @@ def test_regenerate_code(client, priya_headers):
     new_code = res.get_json()["team_code"]
     assert new_code != "TESTCODE"
     assert len(new_code) == 8
+
+
+def test_delete_team(client, priya_headers, ravi_headers):
+    """Test squad deletion: leader can delete, non-leader gets 403."""
+    new_team = client.post("/api/teams", json={"name": "Disposable Squad"}, headers=priya_headers).get_json()["id"]
+
+    # Member attempt forbidden
+    forbid = client.delete(f"/api/teams/{new_team}", headers=ravi_headers)
+    assert forbid.status_code == 403
+
+    # Leader attempt succeeds
+    ok_res = client.delete(f"/api/teams/{new_team}", headers=priya_headers)
+    assert ok_res.status_code == 200
+    assert ok_res.get_json()["success"] is True

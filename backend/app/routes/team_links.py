@@ -7,7 +7,7 @@ from app.models.team import Team, TeamMembership
 from app.models.team_link import TeamLink
 from app.utils.audit import log_audit
 from app.utils.decorators import get_authenticated_user
-from app.utils.helpers import error_response, normalize_url
+from app.utils.helpers import error_response, normalize_url, validate_url
 
 team_links_bp = Blueprint("team_links", __name__, url_prefix="/api/teams")
 
@@ -51,6 +51,9 @@ def create_team_link(team_id: int):
 
     if not title or not raw_url:
         return error_response("Title and URL are required.", 400)
+
+    if not validate_url(raw_url):
+        return error_response("Please enter a valid HTTP or HTTPS URL.", 400)
 
     norm_url = normalize_url(raw_url)
     link = TeamLink(
