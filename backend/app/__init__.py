@@ -20,9 +20,15 @@ def create_app(config_name: str | None = None) -> Flask:
     bcrypt.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
+    cors_origins_raw = os.getenv("CORS_ORIGINS", "*")
+    cors_origins = (
+        [o.strip() for o in cors_origins_raw.split(",") if o.strip()]
+        if cors_origins_raw != "*"
+        else "*"
+    )
     cors.init_app(
         app,
-        resources={r"/api/*": {"origins": "*"}},
+        resources={r"/api/*": {"origins": cors_origins}},
         supports_credentials=True,
     )
 

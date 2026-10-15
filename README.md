@@ -232,3 +232,11 @@ No UI components or hooks need to be rewritten when transitioning to Flask!
 - **Breakpoints:** Responsive down to 390px viewports. Below 900px, the desktop sidebar converts to a fixed bottom navigation tab bar with accessible **44px touch tap targets**.
 - **WCAG AA Contrast:** Validated across all 4 themes.
 - **Accessible Controls:** Form inputs use explicit `<label>` bindings, dialogs include ARIA landmarks and Escape-key dismiss, and all interactive buttons feature visible focus rings.
+
+---
+
+## 🚀 Deployment (Render & Vercel)
+- **1-Click Render Blueprint:** Use the included [`render.yaml`](./render.yaml) on [Render](https://render.com) to deploy the PostgreSQL database, Flask API, and React frontend simultaneously.
+- **Vercel Frontend Support:** Includes [`frontend/vercel.json`](./frontend/vercel.json) with SPA route rewrites for standalone frontend deployment.
+- **Step-by-step instructions:** See [docs/render-deployment.md](./docs/render-deployment.md).
+

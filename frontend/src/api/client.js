@@ -1,5 +1,8 @@
-const API_BASE_URL =
+const rawBaseUrl =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000/api";
+const API_BASE_URL = rawBaseUrl.endsWith("/api")
+  ? rawBaseUrl
+  : `${rawBaseUrl.replace(/\/+$/, "")}/api`;
 
 export async function apiRequest(endpoint, options = {}) {
   const token = sessionStorage.getItem("linkhub_token");
