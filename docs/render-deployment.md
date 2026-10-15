@@ -46,8 +46,7 @@ If you prefer setting up services individually from the Render dashboard:
    - **Root Directory**: `backend`
    - **Environment**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
-   - **Pre-Deploy Command**: `python seed.py`
-   - **Start Command**: `gunicorn run:app`
+   - **Start Command**: `python seed.py && gunicorn run:app`
    - **Plan**: Free
 4. Add **Environment Variables**:
    | Variable | Value | Notes |
